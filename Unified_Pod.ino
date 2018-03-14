@@ -62,8 +62,8 @@ void setup()
 {
     Wire.begin();                                         // Init I2C buss
     // PH to use status LED serial needs to be disbaled
-    Serial.begin(57600);                               // Initialize serial communications with the PC
-    while (!Serial); {}                                // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)    
+//    Serial.begin(57600);                               // Initialize serial communications with the PC
+//    while (!Serial); {}                                // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)    
     
     myGLCD.InitLCD();                                     // initialise LCD
     initIoPins();
@@ -140,7 +140,7 @@ void writeCard() {
     }
     tagCount ++;
 }
-
+int flashCount=0;
 String getBatteryVoltage() {
     int sensorValue = analogRead(V_MEAS);          // read the input on analog pin A2 for battery voltage reading:
     float voltage   = (float)sensorValue / 155;      // Convert the analog reading to a voltage adjusted to Pieters multimeter
@@ -150,12 +150,15 @@ String getBatteryVoltage() {
         flashLed  = LOW;
     } else if ( voltage > BATT_LOW ) {            // If Voltage lower than 3.8 display "Turn off POD" on LCD and flash lights. POD will work until 3.5V but will stop working after that.
         batMsg = "Batt Low";
-        if ( flashLed == LOW ) {                 
-          flashLed = HIGH;                        // toggle status led previouse state 
-        } else {
-          flashLed = LOW;
-        }
     } else {
+        if ( flashCount < sqCounter ){
+            flashCount = sqCounter + 5000;            // set toggle time to 5s
+            if ( flashLed == LOW ) {                 
+              flashLed = HIGH;                        // toggle status led previouse state 
+            } else {
+              flashLed = LOW;
+            }
+        }
         batMsg = "PowerOff";             
         flashLed = LOW;
     }
@@ -168,7 +171,7 @@ String getBatteryVoltage() {
 
 // Displays main Screen Time & Pod station ID
 void updateLcdScreen()    {
-
+    myGLCD.invert (false);
     // 1st line of display
     myGLCD.setFont(SmallFont);
     myGLCD.print((thisPod.podID),CENTER,0);             // Displays POD ID 
@@ -177,8 +180,8 @@ void updateLcdScreen()    {
     unsigned long realMs    = getAfricaTimeMs();       // read the ms time from int counter
     unsigned long ms        = realMs % 1000;               // seperate ms from secconds
     unsigned long realTimeS = baseTimeS + realMs/1000; // convert to sec for easy display
-    String msgTime =  "I " + String(hour(realTimeS)) + ":" + String (minute(realTimeS)) + ":" + String(second(realTimeS)) + "." + String(ms);  
-    Serial.println(msgTime);
+//    String msgTime =  "I " + String(hour(realTimeS)) + ":" + String (minute(realTimeS)) + ":" + String(second(realTimeS)) + "." + String(ms);  
+//    Serial.println(msgTime);
 
     myGLCD.setFont(MediumNumbers);                      // Displays Clock in Medium Numbers
     myGLCD.printNumI(  hour(realTimeS),0,10,2,'0');          // Minimum number of characters is 2 with on '0' to full the space if minimum is not reached
@@ -218,9 +221,12 @@ void setupAndBeep(){
         int noteDurations[length] = {8, 8, 8, 8};                        // note durations 4 = quarter note, 8 = eighth note, etc.::
         beepsLights ( length, melody, noteDurations );
     } else {
-        int length = 8;
-        int melody[length] = {NOTE_A7, NOTE_G5, NOTE_E6, NOTE_C8, NOTE_A7, NOTE_G5, NOTE_E6, NOTE_C8};        
-        int noteDurations[length] = {8, 8, 8, 8,8, 8, 8, 8};  
+//        int length = 8;
+//        int melody[length] = {NOTE_A7, NOTE_G5, NOTE_E6, NOTE_C8, NOTE_A7, NOTE_G5, NOTE_E6, NOTE_C8};        
+//        int noteDurations[length] = {8, 8, 8, 8,8, 8, 8, 8};  
+        int length = 4;
+        int melody[length] = {NOTE_A7, NOTE_G5, NOTE_E6, NOTE_C8};        // notes in the melody:
+        int noteDurations[length] = {8, 8, 8, 8};
         beepsLights ( length, melody, noteDurations );
     } 
 }
@@ -272,6 +278,7 @@ void configrePod() {
 
 // Display fucntion during config loop
 void configDisplay( unsigned long timeLeftMs)   {
+    myGLCD.invert (true);
      // 1st line of display
     myGLCD.setFont(SmallFont);
     String msg = VERSION;
@@ -279,8 +286,8 @@ void configDisplay( unsigned long timeLeftMs)   {
     myGLCD.print(msg,LEFT,0);       
 
    //2nd line  Display
-//    myGLCD.setFont(SmallFont);          
-//    myGLCD.print(VERSION,RIGHT,10);        
+    myGLCD.setFont(SmallFont);          
+    myGLCD.print("DONT TAG",RIGHT,10);        
 
     //3rd line  Display
     myGLCD.setFont(SmallFont);          
@@ -288,7 +295,7 @@ void configDisplay( unsigned long timeLeftMs)   {
  
     // 4th Line
     myGLCD.setFont(SmallFont);
-    myGLCD.print("Tag to change",CENTER,30);
+    myGLCD.print("Swipe2Change",CENTER,30);
 
     // 5th Line
     String timeMsg = "Done in ";
