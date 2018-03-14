@@ -62,8 +62,8 @@ void setup()
 {
     Wire.begin();                                         // Init I2C buss
     // PH to use status LED serial needs to be disbaled
-//    Serial.begin(57600);                               // Initialize serial communications with the PC
-//    while (!Serial); {}                                // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)    
+    Serial.begin(57600);                               // Initialize serial communications with the PC
+    while (!Serial); {}                                // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)    
     
     myGLCD.InitLCD();                                     // initialise LCD
     initIoPins();
@@ -73,8 +73,12 @@ void setup()
 }
 
 
-
+int updateCnt =0;
 void loop() {
+    if (updateCnt < sqCounter){
+      updateCnt = sqCounter + 1000;
+       debugPrint();
+    }
     updateLcdScreen();                      // invoke LCD Screen fucntion
     // when setSyncInterval(interval); runs out the status is changed to "timeNeedsSync"
     if ( timeStatus()  == timeNeedsSync ) {      
@@ -93,6 +97,18 @@ void loop() {
     }
 }
 
+void debugPrint(){
+    unsigned long realMs    = getAfricaTimeMs();       // read the ms time from int counter
+    unsigned long ms        = realMs % 1000;               // seperate ms from secconds
+    unsigned long realTimeS = baseTimeS + realMs/1000; // convert to sec for easy display
+    String msgTime =  "I " + String(hour(realTimeS)) + ":" + String (minute(realTimeS)) + ":" + String(second(realTimeS)) + "." + String(ms);  
+    Serial.println(msgTime);
+    Serial.println(String(realMs));
+    realTimeS = RTC.get();
+    msgTime =  "R " + String(hour(realTimeS)) + ":" + String (minute(realTimeS)) + ":" + String(second(realTimeS));  
+    Serial.println(msgTime);
+    Serial.println();
+}
 
 // interupt is triggered on up and down flanks, we only want one flank
 ISR (PCINT1_vect) {     // handle pin change interrupt for A0 to A5 here
@@ -351,13 +367,23 @@ void initAfricaTimer(){
     baseTimeS = RTC.get();
     while ( RTC.get() < (baseTimeS +1)) {}; 
     sqCounter = 0;                                  // zero qsuare wave counter 
+
     // set base time to H:m:s of today
     baseTimeS           = RTC.get();                      
-    int secToday        = second(baseTimeS);
-    int minToday        = minute(baseTimeS);
-    int hourToday       = hour(baseTimeS);
-    unsigned long today = weekday(baseTimeS);
+    String msgTime =  "R " + String(hour(baseTimeS)) + ":" + String (minute(baseTimeS)) + ":" + String(second(baseTimeS)) ;  
+    Serial.println(msgTime);
+    unsigned long secToday        = second(baseTimeS);
+    unsigned long minToday        = minute(baseTimeS);
+    unsigned long hourToday       = hour(baseTimeS);
+    unsigned long today           = weekday(baseTimeS);
+    msgTime =  "Today " + String(today) + " - " + String(hourToday) + ":" + String (minToday) + ":" + String(secToday) ;  
+    Serial.println(msgTime);
+
     // Regester our base time now with only D H:m:s; 
-    //baseTimeS     =  (hourToday * 60 * 60) + (minToday * 60) + secToday;   
-    baseTimeS     =  (today * 24 * 60 * 60 ) + (hourToday * 60 * 60) + (minToday * 60) + secToday;                  
+    baseTimeS     =  (hourToday * 60 * 60) + (minToday * 60) + secToday;   
+    //baseTimeS     =  (today * 24 * 60 * 60 ) + (hourToday * 60 * 60) + (minToday * 60) + secToday;           
+
+    msgTime =  "I " + String(hour(baseTimeS)) + ":" + String (minute(baseTimeS)) + ":" + String(second(baseTimeS)) ;  
+    Serial.println(msgTime);
+    Serial.println("GO " + String(baseTimeS));
 }
