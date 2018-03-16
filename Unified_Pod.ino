@@ -155,7 +155,7 @@ String getBatteryVoltage() {
         batMsg = "OK";
         battGood = 1;
         if ( flashCount < sqCounter ){
-            flashCount = sqCounter + 2000;            // set toggle time to 5s
+            flashCount = sqCounter + BATT_OK_FLASH;            // set toggle time to 5s
             if ( flashLed == LOW ) {                 
               flashLed = HIGH;                        // toggle status led previouse state 
             } else {
@@ -165,7 +165,7 @@ String getBatteryVoltage() {
     } else {
         battGood = 0;
         if ( flashCount < sqCounter ){
-            flashCount = sqCounter + 100;            // set toggle time to 1s
+            flashCount = sqCounter + BATT_LOW_FLASH;            // set toggle time to 1s
             if ( flashLed == LOW ) {                 
               flashLed = HIGH;                        // toggle status led previouse state 
             } else {

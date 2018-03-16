@@ -36,8 +36,10 @@
 
 #define ADDRESS_POD_TYPE 0
 
-#define BATT_GOOD 3.8
-#define BATT_LOW  3.5
+#define BATT_GOOD       3.8
+#define BATT_LOW        3.5
+#define BATT_OK_FLASH   2000
+#define BATT_LOW_FLASH  100
 // BELOW IS STATION/POD IDENTIFICATION!
 #define LIST_SIZE 16
 #define START_POD  0
