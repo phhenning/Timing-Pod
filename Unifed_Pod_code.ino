@@ -234,13 +234,13 @@ void updateLcdScreen()    {
 void setupAndBeep(){
    if ( thisPod.role == START_POD ) {
         int length = 4;
-        int melody[length] = {NOTE_A7, NOTE_A7, NOTE_AS7, NOTE_AS7};        // notes in the melody:
-        int noteDurations[length] = {8, 8, 8 , 8};                        // note durations 4 = quarter note, 8 = eighth note, etc.::
+        int melody[length] = {NOTE_A7, NOTE_A7, NOTE_A7, NOTE_A7};        // these are the only clear notes with buzzer used!
+        int noteDurations[length] = {8, 8, 8, 8};                       // note durations 4 = quarter note, 8 = eighth note, etc.::
         beepsLights ( length, melody, noteDurations );
     } else {
         int length = 4;
-        int melody[length] = {NOTE_A7, NOTE_A7, NOTE_AS7, NOTE_AS7};        // notes in the melody:
-        int noteDurations[length] = {8, 8, 8, 8};
+        int melody[length] = {NOTE_A7, NOTE_A7, NOTE_A7, NOTE_A7};        // these are the only clear notes with buzzer used!
+        int noteDurations[length] = {8, 8, 8, 8};                       // note durations 4 = quarter note, 8 = eighth note, etc.::
         beepsLights ( length, melody, noteDurations );
     } 
 }
@@ -267,6 +267,10 @@ void beepsLights(int length,int melody[],int noteDurations[]  )    {
 
 // These functions are to define the POD role and synck ms with seconds
 void configrePod() {
+    //turn on all LEDS for config mode warning
+    digitalWrite(STATUS_LED, LOW);    
+    digitalWrite(LED_TOP, LOW);                       
+    digitalWrite(LED_BOT, LOW); 
     // read last pod type index from eeprom and select that identiry as default
     typeIndex = EEPROM.read(ADDRESS_POD_TYPE);
     unsigned long ConfigTimeoutMs = millis() + CONFIG_TIME_MS;
@@ -288,6 +292,10 @@ void configrePod() {
     }
     // save pod type in EEPROM for next boot
     EEPROM.write(ADDRESS_POD_TYPE, typeIndex);
+    //turn off all LEDS for config mode warning
+    digitalWrite(STATUS_LED, HIGH);
+    digitalWrite(LED_TOP, HIGH);                       
+    digitalWrite(LED_BOT, HIGH);  
 }
 
 // Display fucntion during config loop
