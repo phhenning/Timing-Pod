@@ -35,7 +35,7 @@ int typeIndex = 0xFF;                                       // Index for pod ide
 podType thisPod ;                                           // Identity configured for tehis pod
 unsigned long sqCounter = 0;                                // Couner that increments in intterup routine
 unsigned long baseTimeS;                                    // Base time in sec from RTC to withc we sync the ms count
-
+bool battGood = 1;
 
 // RFID COMPONENT Create MFRC522 instance
 MFRC522 mfrc522(RFID_CS, LCD_RST);                          // PH pins from PCB header file 
@@ -62,8 +62,8 @@ void setup()
 {
     Wire.begin();                                         // Init I2C buss
     // PH to use status LED serial needs to be disbaled
-    Serial.begin(57600);                               // Initialize serial communications with the PC
-    while (!Serial); {}                                // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)    
+   // Serial.begin(57600);                               // Initialize serial communications with the PC
+   // while (!Serial); {}                                // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)    
     
     myGLCD.InitLCD();                                     // initialise LCD
     initIoPins();
@@ -75,10 +75,6 @@ void setup()
 
 int updateCnt =0;
 void loop() {
-    if (updateCnt < sqCounter){
-      updateCnt = sqCounter + 1000;
-       debugPrint();
-    }
     updateLcdScreen();                      // invoke LCD Screen fucntion
     // when setSyncInterval(interval); runs out the status is changed to "timeNeedsSync"
     if ( timeStatus()  == timeNeedsSync ) {      
@@ -97,18 +93,6 @@ void loop() {
     }
 }
 
-void debugPrint(){
-    unsigned long realMs    = getAfricaTimeMs();       // read the ms time from int counter
-    unsigned long ms        = realMs % 1000;               // seperate ms from secconds
-    unsigned long realTimeS = baseTimeS + realMs/1000; // convert to sec for easy display
-    String msgTime =  "I " + String(hour(realTimeS)) + ":" + String (minute(realTimeS)) + ":" + String(second(realTimeS)) + "." + String(ms);  
-    Serial.println(msgTime);
-    Serial.println(String(realMs));
-    realTimeS = RTC.get();
-    msgTime =  "R " + String(hour(realTimeS)) + ":" + String (minute(realTimeS)) + ":" + String(second(realTimeS));  
-    Serial.println(msgTime);
-    Serial.println();
-}
 
 // interupt is triggered on up and down flanks, we only want one flank
 ISR (PCINT1_vect) {     // handle pin change interrupt for A0 to A5 here
@@ -156,19 +140,32 @@ void writeCard() {
     }
     tagCount ++;
 }
-int flashCount=0;
+
+unsigned long flashCount = 0;
 String getBatteryVoltage() {
     int sensorValue = analogRead(V_MEAS);          // read the input on analog pin A2 for battery voltage reading:
+    //Serial.println(String(sensorValue));
     float voltage   = (float)sensorValue / 155;      // Convert the analog reading to a voltage adjusted to Pieters multimeter
     String batMsg   = "Good";
     if (voltage > BATT_GOOD)  {                   // If Voltage higher than 3.8 display "Good" on LCD
         batMsg    = "Good";
         flashLed  = LOW;
+        battGood = 1;
     } else if ( voltage > BATT_LOW ) {            // If Voltage lower than 3.8 display "Turn off POD" on LCD and flash lights. POD will work until 3.5V but will stop working after that.
-        batMsg = "Batt Low";
-    } else {
+        batMsg = "OK";
+        battGood = 1;
         if ( flashCount < sqCounter ){
-            flashCount = sqCounter + 5000;            // set toggle time to 5s
+            flashCount = sqCounter + 2000;            // set toggle time to 5s
+            if ( flashLed == LOW ) {                 
+              flashLed = HIGH;                        // toggle status led previouse state 
+            } else {
+               flashLed = LOW;
+            }
+        }
+    } else {
+        battGood = 0;
+        if ( flashCount < sqCounter ){
+            flashCount = sqCounter + 100;            // set toggle time to 1s
             if ( flashLed == LOW ) {                 
               flashLed = HIGH;                        // toggle status led previouse state 
             } else {
@@ -176,10 +173,10 @@ String getBatteryVoltage() {
             }
         }
         batMsg = "PowerOff";             
-        flashLed = LOW;
     }
     char volt[5];
     String messageBattery = dtostrf(voltage,1,2,volt);       // conver float to string
+    //Serial.println(messageBattery);
     messageBattery        = messageBattery + "V " + batMsg;  // append status 
     digitalWrite(STATUS_LED, flashLed); 
     return messageBattery;
@@ -187,11 +184,17 @@ String getBatteryVoltage() {
 
 // Displays main Screen Time & Pod station ID
 void updateLcdScreen()    {
+
     myGLCD.invert (false);
     // 1st line of display
     myGLCD.setFont(SmallFont);
     myGLCD.print((thisPod.podID),CENTER,0);             // Displays POD ID 
 
+    if (battGood == 0) {
+         myGLCD.setFont(SmallFont);
+         myGLCD.print(("Battery Low"),CENTER,10);            
+
+    } else {
     //2nd line  Display
     unsigned long realMs    = getAfricaTimeMs();       // read the ms time from int counter
     unsigned long ms        = realMs % 1000;               // seperate ms from secconds
@@ -209,7 +212,8 @@ void updateLcdScreen()    {
     myGLCD.drawRect(55,20,57,22);
     myGLCD.drawRect(26,15,28,17);
     myGLCD.drawRect(26,20,28,22);
- 
+    }
+    
     // 3r Line
     myGLCD.setFont(SmallFont);
     int temp    = RTC.temperature();

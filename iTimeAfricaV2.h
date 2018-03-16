@@ -2,7 +2,7 @@
 *header file for ITA v2 PCB
 */
 
-#define VERSION "V3.1"
+#define VERSION "V3.3"
 //GLOBAL DEFINITIONS         
 
 #define DS3231_I2C_ADDRESS 	0x68
