@@ -269,6 +269,7 @@ void beepsLights(int length,int melody[],int noteDurations[]  )    {
 }
 /*
 // Configuration functions - Only called once duting setup
+// if config pin is 0 load last state and exit
 */
 
 // These functions are to define the POD role and synck ms with seconds
@@ -276,8 +277,12 @@ void configrePod() {
     // read last pod type index from eeprom and select that identiry as default
     typeIndex = EEPROM.read(ADDRESS_POD_TYPE);
     unsigned long ConfigTimeoutMs = millis() + CONFIG_TIME_MS;
-    unsigned long msLeft = CONFIG_TIME_MS;
-    while ( millis() < ConfigTimeoutMs ) {
+    if ( digitalRead(CONFIG) == 0){
+        thisPod = podTypeList[typeIndex];
+        return;
+    } else {
+      unsigned long msLeft = CONFIG_TIME_MS;
+      while ( millis() < ConfigTimeoutMs ) {
         // check for card read and incremetn typeIndex
         if ( mfrc522.PICC_IsNewCardPresent()) {    // Look for new cards
             typeIndex++;
@@ -291,9 +296,10 @@ void configrePod() {
         msLeft = ConfigTimeoutMs - millis();
         configDisplay (msLeft );
         delay (100);
+      }
+      // save pod type in EEPROM for next boot
+      EEPROM.write(ADDRESS_POD_TYPE, typeIndex);
     }
-    // save pod type in EEPROM for next boot
-    EEPROM.write(ADDRESS_POD_TYPE, typeIndex);
 }
 
 // Display fucntion during config loop
@@ -332,6 +338,8 @@ void configDisplay( unsigned long timeLeftMs)   {
 void initIoPins() {
     // Input Pins
     pinMode(SQ_WAVE, INPUT);
+    pinMode(CONFIG, INPUT);
+
 
     // Output Pins
     pinMode(LED_TOP, OUTPUT);
