@@ -2,7 +2,7 @@
 *header file for ITA v2 PCB
 */
 
-#define VERSION "V3.1"
+#define VERSION "V3.3"
 //GLOBAL DEFINITIONS         
 
 #define DS3231_I2C_ADDRESS 	0x68
@@ -36,8 +36,10 @@
 
 #define ADDRESS_POD_TYPE 0
 
-#define BATT_GOOD 3.8
-#define BATT_LOW  3.5
+#define BATT_GOOD       3.9
+#define BATT_LOW        3.8
+#define BATT_OK_FLASH   2000
+#define BATT_LOW_FLASH  100
 // BELOW IS STATION/POD IDENTIFICATION!
 #define LIST_SIZE 16
 #define START_POD  0
