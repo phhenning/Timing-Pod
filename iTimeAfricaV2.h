@@ -71,7 +71,7 @@ struct podType podTypeList [LIST_SIZE] = {
 	{ 37, "Stage 8 Finish", FINISH_POD },
     };
 // variouse values
-#define CONFIG_TIME_MS 15000  
+#define CONFIG_TIME_MS 10000  
 // int main()
 // {
 //     printf("Hello World\n");
