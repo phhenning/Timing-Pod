@@ -191,7 +191,7 @@ String getBatteryVoltage() {
               flashLed = LOW;
             }
             Serial.println (battBeepCount);
-            if ( battBeepCount > 25 ) {
+            if ( battBeepCount > 100 ) {
               doBatteryBeep();
               battBeepCount = 0;              
             }
@@ -259,12 +259,12 @@ void updateLcdScreen()    {
 
 void doBatteryBeep() {
     int length = 2;
-    int melody[length] = {NOTE_A5, NOTE_B7};        // these are the only clear notes with buzzer used!
+    int melody[length] = {NOTE_A5, NOTE_A7};        // these are the only clear notes with buzzer used!
     int noteDurations[length] = {7, 7};                        // note durations 4 = quarter note, 8 = eighth note, etc.::
     for (int thisNote = 0; thisNote < length; thisNote++) {
         int noteDuration = 1000 / noteDurations[thisNote];      //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
         tone(BUZZER, melody[thisNote], noteDuration);
-        int pauseBetweenNotes = noteDuration * 1.30;            // the note's duration + 30% seems to work well:
+        int pauseBetweenNotes = noteDuration * 0.80;            // the note's duration + 30% seems to work well:
         delay(pauseBetweenNotes); 
         noTone(BUZZER);                                         // stop the tone playing:
     }  
