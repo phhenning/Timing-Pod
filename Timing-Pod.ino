@@ -343,10 +343,14 @@ void configrePod() {
                 }
             }
             digitalClockToSerial();
+            delay(50);
         }
     // save pod type in EEPROM for next boot
     EEPROM.write(ADDRESS_POD_TYPE, typeIndex);
+    Serial.flush();
+    Serial.end();
     }
+
     //turn off all LEDS for config mode warning
     digitalWrite(STATUS_LED, HIGH);
     digitalWrite(LED_TOP, HIGH);                       
