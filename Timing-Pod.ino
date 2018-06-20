@@ -318,7 +318,7 @@ void configrePod() {
     } else {
         // waits for card swipes to change pod definition
         // allow RTC set from PC via Serial port
-        Serial.begin(57600);
+        Serial.begin(9600);
         unsigned long msLeft = CONFIG_TIME_MS;
         while ( millis() < ConfigTimeoutMs ) {
             // check for card read and incremetn typeIndex
